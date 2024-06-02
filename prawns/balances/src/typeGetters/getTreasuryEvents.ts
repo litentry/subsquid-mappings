@@ -1,14 +1,14 @@
-import { EventHandlerContext } from '@subsquid/substrate-processor';
-import { Store } from '@subsquid/typeorm-store';
-import { SubstrateNetwork } from '../../model';
-import { TreasuryAwardedEvent as KusamaTreasuryAwardedEvent } from '../../types/kusama/events';
-import { TreasuryAwardedEvent as PolkadotTreasuryAwardedEvent } from '../../types/polkadot/events';
-// import { TreasuryAwardedEvent as KhalaTreasuryAwardedEvent } from '../../types/khala/events';
-// import { TreasuryAwardedEvent as LitentryTreasuryAwardedEvent } from '../../types/litentry/events';
-// import { TreasuryAwardedEvent as LitmusTreasuryAwardedEvent } from '../../types/litmus/events';
+import { SubstrateNetwork } from '../model';
+import { TreasuryAwardedEvent as KusamaTreasuryAwardedEvent } from '../types/kusama/events';
+import { ChainContext, Event } from '../types/kusama/support';
+import { TreasuryAwardedEvent as PolkadotTreasuryAwardedEvent } from '../types/polkadot/events';
+// import { TreasuryAwardedEvent as KhalaTreasuryAwardedEvent } from '../types/khala/events';
+// import { TreasuryAwardedEvent as LitentryTreasuryAwardedEvent } from '../types/litentry/events';
+// import { TreasuryAwardedEvent as LitmusTreasuryAwardedEvent } from '../types/litmus/events';
 
 export function getTreasuryAwardedEvent(
-  ctx: EventHandlerContext<Store>,
+  ctx: ChainContext,
+  event: Event,
   network: SubstrateNetwork
 ): {
   award: bigint;
@@ -16,36 +16,36 @@ export function getTreasuryAwardedEvent(
 } {
   switch (network) {
     case SubstrateNetwork.kusama: {
-      const event = new KusamaTreasuryAwardedEvent(ctx);
+      const data = new KusamaTreasuryAwardedEvent(ctx, event);
 
-      if (event.isV1020) {
-        const [, award, account] = event.asV1020;
+      if (data.isV1020) {
+        const [, award, account] = data.asV1020;
         return {
           award,
           account,
         };
       }
 
-      if (event.isV9160) {
-        return event.asV9160;
+      if (data.isV9160) {
+        return data.asV9160;
       }
 
       throw new Error('Unexpected version');
     }
 
     case SubstrateNetwork.polkadot: {
-      const event = new PolkadotTreasuryAwardedEvent(ctx);
+      const data = new PolkadotTreasuryAwardedEvent(ctx, event);
 
-      if (event.isV0) {
-        const [, award, account] = event.asV0;
+      if (data.isV0) {
+        const [, award, account] = data.asV0;
         return {
           award,
           account,
         };
       }
 
-      if (event.isV9170) {
-        return event.asV9170;
+      if (data.isV9170) {
+        return data.asV9170;
       }
 
       throw new Error('Unexpected version');

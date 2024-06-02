@@ -1,39 +1,41 @@
-import { EventHandlerContext } from '@subsquid/substrate-processor';
-import { Store } from '@subsquid/typeorm-store';
-import { SubstrateNetwork } from '../../model';
+import { SubstrateNetwork } from '../model';
 import {
   BalancesBalanceSetEvent as KusamaBalancesBalanceSetEvent,
   BalancesDepositEvent as KusamaBalancesDepositEvent,
   BalancesEndowedEvent as KusamaBalancesEndowedEvent,
   BalancesTransferEvent as KusamaBalancesTransferEvent,
-} from '../../types/kusama/events';
+} from '../types/kusama/events';
+// it feels a bit wrong using kusama types on all the getters but ChainContext and Event are generic
+import { ChainContext, Event } from '../types/kusama/support';
 import {
   BalancesBalanceSetEvent as PolkadotBalancesBalanceSetEvent,
   BalancesDepositEvent as PolkadotBalancesDepositEvent,
   BalancesEndowedEvent as PolkadotBalancesEndowedEvent,
   BalancesTransferEvent as PolkadotBalancesTransferEvent,
-} from '../../types/polkadot/events';
+} from '../types/polkadot/events';
+
 // import {
 //   BalancesBalanceSetEvent as KhalaBalancesBalanceSetEvent,
 //   BalancesDepositEvent as KhalaBalancesDepositEvent,
 //   BalancesEndowedEvent as KhalaBalancesEndowedEvent,
 //   BalancesTransferEvent as KhalaBalancesTransferEvent,
-// } from '../../types/khala/events';
+// } from '../types/khala/events';
 // import {
 //   BalancesBalanceSetEvent as LitentryBalancesBalanceSetEvent,
 //   BalancesDepositEvent as LitentryBalancesDepositEvent,
 //   BalancesEndowedEvent as LitentryBalancesEndowedEvent,
 //   BalancesTransferEvent as LitentryBalancesTransferEvent,
-// } from '../../types/litentry/events';
+// } from '../types/litentry/events';
 // import {
 //   BalancesBalanceSetEvent as LitmusBalancesBalanceSetEvent,
 //   BalancesDepositEvent as LitmusBalancesDepositEvent,
 //   BalancesEndowedEvent as LitmusBalancesEndowedEvent,
 //   BalancesTransferEvent as LitmusBalancesTransferEvent,
-// } from '../../types/litmus/events';
+// } from '../types/litmus/events';
 
 export function getBalancesBalanceSetEvent(
-  ctx: EventHandlerContext<Store>,
+  ctx: ChainContext,
+  event: Event,
   network: SubstrateNetwork
 ): {
   who: Uint8Array;
@@ -42,28 +44,28 @@ export function getBalancesBalanceSetEvent(
 } {
   switch (network) {
     case SubstrateNetwork.kusama: {
-      const event = new KusamaBalancesBalanceSetEvent(ctx);
-      if (event.isV1031) {
-        const [who, free, reserved] = event.asV1031;
+      const data = new KusamaBalancesBalanceSetEvent(ctx, event);
+      if (data.isV1031) {
+        const [who, free, reserved] = data.asV1031;
         return { who, free, reserved };
       }
 
-      if (event.isV9130) {
-        return event.asV9130;
+      if (data.isV9130) {
+        return data.asV9130;
       }
 
       throw new Error('Unexpected version');
     }
 
     case SubstrateNetwork.polkadot: {
-      const event = new PolkadotBalancesBalanceSetEvent(ctx);
-      if (event.isV0) {
-        const [who, free, reserved] = event.asV0;
+      const data = new PolkadotBalancesBalanceSetEvent(ctx, event);
+      if (data.isV0) {
+        const [who, free, reserved] = data.asV0;
         return { who, free, reserved };
       }
 
-      if (event.isV9140) {
-        return event.asV9140;
+      if (data.isV9140) {
+        return data.asV9140;
       }
 
       throw new Error('Unexpected version');
@@ -111,7 +113,8 @@ export function getBalancesBalanceSetEvent(
 }
 
 export function getBalancesDepositEvent(
-  ctx: EventHandlerContext<Store>,
+  ctx: ChainContext,
+  event: Event,
   network: SubstrateNetwork
 ): {
   who: Uint8Array;
@@ -119,30 +122,30 @@ export function getBalancesDepositEvent(
 } {
   switch (network) {
     case SubstrateNetwork.kusama: {
-      const event = new KusamaBalancesDepositEvent(ctx);
+      const data = new KusamaBalancesDepositEvent(ctx, event);
 
-      if (event.isV1032) {
-        const [who, amount] = event.asV1032;
+      if (data.isV1032) {
+        const [who, amount] = data.asV1032;
         return { who, amount };
       }
 
-      if (event.isV9130) {
-        return event.asV9130;
+      if (data.isV9130) {
+        return data.asV9130;
       }
 
       throw new Error('Unexpected version');
     }
 
     case SubstrateNetwork.polkadot: {
-      const event = new PolkadotBalancesDepositEvent(ctx);
+      const data = new PolkadotBalancesDepositEvent(ctx, event);
 
-      if (event.isV0) {
-        const [who, amount] = event.asV0;
+      if (data.isV0) {
+        const [who, amount] = data.asV0;
         return { who, amount };
       }
 
-      if (event.isV9140) {
-        return event.asV9140;
+      if (data.isV9140) {
+        return data.asV9140;
       }
 
       throw new Error('Unexpected version');
@@ -191,7 +194,8 @@ export function getBalancesDepositEvent(
 }
 
 export function getBalancesEndowedEvent(
-  ctx: EventHandlerContext<Store>,
+  ctx: ChainContext,
+  event: Event,
   network: SubstrateNetwork
 ): {
   account: Uint8Array;
@@ -199,30 +203,30 @@ export function getBalancesEndowedEvent(
 } {
   switch (network) {
     case SubstrateNetwork.kusama: {
-      const event = new KusamaBalancesEndowedEvent(ctx);
+      const data = new KusamaBalancesEndowedEvent(ctx, event);
 
-      if (event.isV1050) {
-        const [account, freeBalance] = event.asV1050;
+      if (data.isV1050) {
+        const [account, freeBalance] = data.asV1050;
         return { account, freeBalance };
       }
 
-      if (event.isV9130) {
-        return event.asV9130;
+      if (data.isV9130) {
+        return data.asV9130;
       }
 
       throw new Error('Unexpected version');
     }
 
     case SubstrateNetwork.polkadot: {
-      const event = new PolkadotBalancesEndowedEvent(ctx);
+      const data = new PolkadotBalancesEndowedEvent(ctx, event);
 
-      if (event.isV0) {
-        const [account, freeBalance] = event.asV0;
+      if (data.isV0) {
+        const [account, freeBalance] = data.asV0;
         return { account, freeBalance };
       }
 
-      if (event.isV9140) {
-        return event.asV9140;
+      if (data.isV9140) {
+        return data.asV9140;
       }
 
       throw new Error('Unexpected version');
@@ -271,7 +275,8 @@ export function getBalancesEndowedEvent(
 }
 
 export function getBalancesTransferEvent(
-  ctx: EventHandlerContext<Store>,
+  ctx: ChainContext,
+  event: Event,
   network: SubstrateNetwork
 ): {
   from: Uint8Array;
@@ -280,32 +285,32 @@ export function getBalancesTransferEvent(
 } {
   switch (network) {
     case SubstrateNetwork.kusama: {
-      const event = new KusamaBalancesTransferEvent(ctx);
+      const data = new KusamaBalancesTransferEvent(ctx, event);
 
-      if (event.isV1020) {
-        const [from, to, amount] = event.asV1020;
+      if (data.isV1020) {
+        const [from, to, amount] = data.asV1020;
         return { from, to, amount };
       }
 
-      if (event.isV1050) {
-        const [from, to, amount] = event.asV1050;
+      if (data.isV1050) {
+        const [from, to, amount] = data.asV1050;
         return { from, to, amount };
       }
 
-      if (event.isV9130) {
-        return event.asV9130;
+      if (data.isV9130) {
+        return data.asV9130;
       }
       throw new Error('Unexpected version');
     }
 
     case SubstrateNetwork.polkadot: {
-      const event = new PolkadotBalancesTransferEvent(ctx);
+      const data = new PolkadotBalancesTransferEvent(ctx, event);
 
-      if (event.isV0) {
-        const [from, to, amount] = event.asV0;
+      if (data.isV0) {
+        const [from, to, amount] = data.asV0;
         return { from, to, amount };
-      } else if (event.isV9140) {
-        return event.asV9140;
+      } else if (data.isV9140) {
+        return data.asV9140;
       }
       throw new Error('Unexpected version');
     }
